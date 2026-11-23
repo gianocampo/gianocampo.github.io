@@ -64,8 +64,7 @@ a:hover { color: var(--text); }
 /* ---------- tmux-style status bar ---------- */
 .bar {
   position: sticky; top: 0; z-index: 10;
-  background: rgba(9, 13, 22, 0.92);
-  backdrop-filter: blur(6px);
+  background: rgba(9, 13, 22, 0.97);
   border-bottom: 1px solid var(--line);
   font-family: var(--font-display);
   font-size: var(--fs-xs);
@@ -621,14 +620,23 @@ footer .wrap { display: grid; gap: 0.3rem; }
   setInterval(setClock, 30000);
 
   /* ---- active window in the status bar ---- */
+  var nav = document.querySelector(".windows");
   var links = Array.prototype.slice.call(document.querySelectorAll(".windows a"));
   var byId = {};
+  var current = null;
   links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
   function setActive(id) {
+    if (id === current || !byId[id]) return;
+    current = id;
     links.forEach(function (a) { a.removeAttribute("aria-current"); });
-    if (byId[id]) {
-      byId[id].setAttribute("aria-current", "true");
-      try { byId[id].scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {}
+    var a = byId[id];
+    a.setAttribute("aria-current", "true");
+    // Keep the active tab visible on narrow screens by scrolling only the tab bar,
+    // never the page, so the visitor's scroll isn't interrupted.
+    if (nav.scrollWidth > nav.clientWidth) {
+      var nr = nav.getBoundingClientRect(), ar = a.getBoundingClientRect();
+      if (ar.left < nr.left) nav.scrollLeft -= (nr.left - ar.left) + 12;
+      else if (ar.right > nr.right) nav.scrollLeft += (ar.right - nr.right) + 12;
     }
   }
   setActive("top");
