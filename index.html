@@ -81,7 +81,9 @@ a:hover { color: var(--text); }
 .windows::-webkit-scrollbar { display: none; }
 .windows a {
   flex: none; color: var(--muted); text-decoration: none;
-  padding: 0.25rem 0.5rem; border-radius: 3px; white-space: nowrap;
+  display: inline-flex; align-items: center; min-height: 34px;
+  padding: 0 0.6rem; border-radius: 3px; white-space: nowrap;
+  touch-action: manipulation;
 }
 .windows a:hover { color: var(--text); }
 .windows a[aria-current="true"] { color: var(--text); background: var(--line); }
@@ -641,15 +643,41 @@ footer .wrap { display: grid; gap: 0.3rem; }
       else if (ar.right > nr.right) nav.scrollLeft += (ar.right - nr.right) + 12;
     }
   }
-  setActive("top");
-  if ("IntersectionObserver" in window) {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) setActive(en.target.id); });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    ["top", "about", "experience", "skills", "certifications", "beyond-work", "contact"].forEach(function (id) {
-      var s = document.getElementById(id); if (s) io.observe(s);
-    });
+  var sections = ["top", "about", "experience", "skills", "certifications", "beyond-work", "contact"]
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+  // After a tab click, keep that tab highlighted until the visitor scrolls on their own.
+  // Sections near the bottom can't reach the top of the screen, so position alone would
+  // highlight the wrong tab and make the click look like it failed.
+  var pinned = null;
+  function pick() {
+    if (pinned) { setActive(pinned); return; }
+    var doc = document.documentElement;
+    if (window.innerHeight + window.scrollY >= doc.scrollHeight - 4) {
+      setActive(sections[sections.length - 1].id);
+      return;
+    }
+    var line = window.innerHeight * 0.4, id = sections[0].id;
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].getBoundingClientRect().top <= line) id = sections[i].id;
+    }
+    setActive(id);
   }
+  var ticking = false;
+  window.addEventListener("scroll", function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { ticking = false; pick(); });
+  }, { passive: true });
+  ["wheel", "touchstart", "keydown"].forEach(function (t) {
+    window.addEventListener(t, function () { pinned = null; }, { passive: true });
+  });
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    var id = a.getAttribute("href").slice(1);
+    if (!byId[id]) return;
+    a.addEventListener("click", function () { pinned = id; setActive(id); });
+  });
+  pick();
 
   /* ---- copy email ---- */
   var copyBtn = document.getElementById("copy-email");
