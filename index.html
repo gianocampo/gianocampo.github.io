@@ -40,9 +40,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 64px; }
 
 body {
   margin: 0;
-  background:
-    radial-gradient(56rem 28rem at 8% -6%, rgba(59, 99, 224, 0.16), transparent 62%),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   font-size: var(--fs-md);
@@ -97,12 +95,16 @@ a:hover { color: var(--text); }
 @media (max-width: 520px) { .ps .host { display: none; } }
 
 /* ---------- hero terminal ---------- */
-.hero { padding: clamp(28px, 6vw, 64px) 0 clamp(28px, 5vw, 48px); }
+.hero {
+  padding: clamp(28px, 6vw, 64px) 0 clamp(28px, 5vw, 48px);
+  /* glow lives only in the first screen, so scrolling the rest stays cheap to draw */
+  background: radial-gradient(56rem 28rem at 8% -10%, rgba(59, 99, 224, 0.16), transparent 62%);
+}
 .term {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
-  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(91, 130, 240, 0.05);
+  box-shadow: 0 16px 32px -20px rgba(0, 0, 0, 0.8);
   overflow: hidden;
 }
 .titlebar {
